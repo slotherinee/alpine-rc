@@ -35,8 +35,14 @@ A component is an `.html` file with a `<template>` wrapper:
 <!-- components/card.html -->
 <template>
   <style scoped>
-    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; }
-    .card h2 { margin: 0; }
+    .card {
+      border: 1px solid #ddd;
+      padding: 16px;
+      border-radius: 8px;
+    }
+    .card h2 {
+      margin: 0;
+    }
   </style>
 
   <div class="card">
@@ -85,8 +91,7 @@ Pass data to the component via `:attr` or `x-bind:attr` bindings on the host ele
   :title="post.title"
   :count="post.likes"
   :active="selectedId === post.id"
->
-</div>
+></div>
 ```
 
 Inside the component template, props are available directly:
@@ -169,7 +174,9 @@ No configuration needed. Tailwind, CSS, SCSS, and any `<link>` stylesheets apply
 <template>
   <style>
     /* Injected into <head> once — global scope */
-    .card { padding: 16px; }
+    .card {
+      padding: 16px;
+    }
   </style>
   <div class="card"></div>
 </template>
@@ -188,12 +195,16 @@ No configuration needed. Tailwind, CSS, SCSS, and any `<link>` stylesheets apply
 <template>
   <style scoped>
     /* Scoped: only applies inside this component */
-    .card { padding: 16px; }
+    .card {
+      padding: 16px;
+    }
   </style>
 
   <style>
     /* Still global — injected to <head> as-is */
-    .badge { border-radius: 99px; }
+    .badge {
+      border-radius: 99px;
+    }
   </style>
 
   <div class="card">...</div>
@@ -220,12 +231,12 @@ To adopt global stylesheets into the shadow root:
 
 ## Modifiers reference
 
-| Modifier | Description |
-|---|---|
-| `.url` | Load template from a same-origin URL |
-| `.url.external` | Load template from a cross-origin URL |
-| `.scoped` | Scope `<style scoped>` via data attribute |
-| `.isolated` | Render in Shadow DOM |
+| Modifier                | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `.url`                  | Load template from a same-origin URL           |
+| `.url.external`         | Load template from a cross-origin URL          |
+| `.scoped`               | Scope `<style scoped>` via data attribute      |
+| `.isolated`             | Render in Shadow DOM                           |
 | `.isolated.with-styles` | Shadow DOM + adopt global document stylesheets |
 
 ---
@@ -236,15 +247,15 @@ All events bubble and are dispatched on the host element.
 
 ```js
 el.addEventListener('rc:loading', ({ detail }) => console.log('loading', detail.source))
-el.addEventListener('rc:loaded',  ({ detail }) => console.log('loaded',  detail.source))
-el.addEventListener('rc:error',   ({ detail }) => console.log('error',   detail.error))
+el.addEventListener('rc:loaded', ({ detail }) => console.log('loaded', detail.source))
+el.addEventListener('rc:error', ({ detail }) => console.log('error', detail.error))
 ```
 
-| Event | Fires when | Detail |
-|---|---|---|
-| `rc:loading` | URL fetch starts (`.url` only) | `{ source }` |
-| `rc:loaded` | Component rendered | `{ source }` |
-| `rc:error` | Expression, fetch, or render failed | `{ source, error }` |
+| Event        | Fires when                          | Detail              |
+| ------------ | ----------------------------------- | ------------------- |
+| `rc:loading` | URL fetch starts (`.url` only)      | `{ source }`        |
+| `rc:loaded`  | Component rendered                  | `{ source }`        |
+| `rc:error`   | Expression, fetch, or render failed | `{ source, error }` |
 
 ---
 
@@ -285,8 +296,24 @@ npm i -D vite-plugin-bake-alpine-components
 import bakeAlpineComponents from 'vite-plugin-bake-alpine-components'
 
 export default {
-  plugins: [bakeAlpineComponents()]
+  plugins: [bakeAlpineComponents()],
 }
 ```
 
-The plugin evaluates `x-for`, `x-text`, and `x-component.url` at build time and outputs plain HTML with all data already inlined — no Alpine runtime needed for the initial render.
+Use an explicit split between build-time and runtime directives:
+
+- `s-*` directives are baked at build time by the Vite plugin.
+- `x-*`, `:*`, and `@*` directives are left untouched for Alpine runtime.
+
+`alpine-rc` also normalizes `s-*` to their Alpine equivalents in dev/runtime mode so behavior stays consistent:
+
+- `s-text -> x-text`
+- `s-html -> x-html`
+- `s-class -> :class`
+- `s-style -> :style`
+- `s-show -> x-show`
+- `s-bind:attr -> :attr`
+- `<template s-for> -> <template x-for>`
+- `<template s-if> -> <template x-if>`
+
+This keeps component authoring simple: use `s-*` for baked/static output and `x-*` for client reactivity.
