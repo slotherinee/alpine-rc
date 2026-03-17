@@ -1,0 +1,41 @@
+{
+  "name": "alpine-rc",
+  "version": "0.1.0",
+  "description": "Alpine.js component plugin — global styles by default, scoped styles on demand, reactive props, slots",
+  "keywords": [
+    "alpinejs",
+    "alpine-rc",
+    "components",
+    "scoped-css",
+    "slots"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist",
+    "types",
+    "src"
+  ],
+  "main": "dist/alpine-rc.esm.js",
+  "module": "dist/alpine-rc.esm.js",
+  "types": "types/index.d.ts",
+  "unpkg": "dist/alpine-rc.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/alpine-rc.esm.js",
+      "types": "./types/index.d.ts",
+      "default": "./dist/alpine-rc.esm.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "lint": "eslint . --fix",
+    "prebuild": "npm run lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.27.3",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0"
+  }
+}
