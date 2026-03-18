@@ -19,7 +19,7 @@ function resolveSource(expression, evaluate) {
   }
 }
 
-function unmount(el, Alpine, isIsolated) {
+function unmount(el, Alpine, isIsolated, reactiveProps) {
   if (isIsolated) {
     if (el.shadowRoot) {
       Alpine.destroyTree(el.shadowRoot)
@@ -28,8 +28,11 @@ function unmount(el, Alpine, isIsolated) {
   } else {
     for (const child of [...el.children]) Alpine.destroyTree(child)
     el.replaceChildren()
-    // Remove scope we added
-    delete el._x_dataStack
+    // Remove only the scope we added, preserving parent scopes (e.g. x-for)
+    if (el._x_dataStack) {
+      el._x_dataStack = el._x_dataStack.filter((s) => s !== reactiveProps)
+      if (el._x_dataStack.length === 0) delete el._x_dataStack
+    }
   }
 }
 
@@ -64,7 +67,7 @@ export default function registerDirective(Alpine) {
         lastSource = source
 
         if (!source) {
-          if (mounted) unmount(el, Alpine, isIsolated)
+          if (mounted) unmount(el, Alpine, isIsolated, reactiveProps)
           mounted = false
           return
         }
@@ -88,7 +91,7 @@ export default function registerDirective(Alpine) {
 
             if (scopeAttr) applyScopeToAll(fragment, scopeAttr)
 
-            if (mounted) unmount(el, Alpine, isIsolated)
+            if (mounted) unmount(el, Alpine, isIsolated, reactiveProps)
 
             if (isIsolated) {
               const shadow = el.shadowRoot || el.attachShadow({ mode: 'open' })
@@ -115,7 +118,7 @@ export default function registerDirective(Alpine) {
 
       cleanup(() => {
         renderToken++
-        if (mounted) unmount(el, Alpine, isIsolated)
+        if (mounted) unmount(el, Alpine, isIsolated, reactiveProps)
       })
     },
   )

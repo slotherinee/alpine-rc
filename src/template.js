@@ -21,12 +21,18 @@ function stripOuterTemplate(html) {
 //   <template s-if>   → <template x-if>
 //   s-if (on any element) → x-if
 function convertServerDirectives(html) {
+  if (/\bs-bind:x-data=/i.test(html)) {
+    console.error(
+      '[alpine-rc] s-bind:x-data is not allowed. Use x-data directly — props are available in scope via the host wrapper.'
+    )
+  }
   return html
     .replace(/\bs-text=/g, 'x-text=')
     .replace(/\bs-html=/g, 'x-html=')
     .replace(/\bs-class=/g, ':class=')
     .replace(/\bs-style=/g, ':style=')
     .replace(/\bs-show=/g, 'x-show=')
+    .replace(/\bs-bind:x-data\s*=\s*(["'])[\s\S]*?\1/gi, '')
     .replace(/\bs-bind:([a-zA-Z][a-zA-Z0-9-]*)=/g, ':$1=')
     .replace(/(<template\b[^>]*\s)s-for=/g, '$1x-for=')
     .replace(/(<template\b[^>]*\s)s-if=/g, '$1x-if=')

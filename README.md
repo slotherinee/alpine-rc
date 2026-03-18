@@ -307,13 +307,55 @@ Use an explicit split between build-time and runtime directives:
 
 `alpine-rc` also normalizes `s-*` to their Alpine equivalents in dev/runtime mode so behavior stays consistent:
 
-- `s-text -> x-text`
-- `s-html -> x-html`
-- `s-class -> :class`
-- `s-style -> :style`
-- `s-show -> x-show`
-- `s-bind:attr -> :attr`
-- `<template s-for> -> <template x-for>`
-- `<template s-if> -> <template x-if>`
+| Directive | Baked output | Dev/runtime equivalent |
+| --- | --- | --- |
+| `s-text="expr"` | static text | `x-text` |
+| `s-html="expr"` | static innerHTML | `x-html` |
+| `s-class="expr"` | merged into `class` | `:class` |
+| `s-style="expr"` | merged into `style` | `:style` |
+| `s-show="expr"` | `style="display:none"` if falsy | `x-show` |
+| `s-bind:attr="expr"` | static attribute | `:attr` |
+| `<template s-for="x in list">` | expanded loop | `<template x-for>` |
+| `<template s-if="expr">` | included or removed | `<template x-if>` |
 
 This keeps component authoring simple: use `s-*` for baked/static output and `x-*` for client reactivity.
+
+### Rules and constraints
+
+**`s-if` is only valid on `<template>` elements.**
+For conditional visibility on a regular element use `s-show` instead:
+
+```html
+<!-- correct: conditional block -->
+<template s-if="isAdmin">
+  <p>Admin panel</p>
+</template>
+
+<!-- correct: show/hide an element -->
+<span s-show="label" s-text="label"></span>
+
+<!-- wrong: s-if on a non-template element is not supported -->
+<span s-if="label">...</span>
+```
+
+**Prop names must be lowercase.**
+HTML normalises attribute names to lowercase in the DOM. A binding like `:showHint="..."` becomes `:showhint` by the time alpine-rc reads it. Use all-lowercase names consistently in both the host binding and the component template:
+
+```html
+<!-- host -->
+<div x-component="'my-card'" :showhint="true"></div>
+
+<!-- component template -->
+<template s-if="showhint">...</template>
+```
+
+**`x-data` is always a runtime directive — never use `s-bind:x-data`.**
+Props are available inside `x-data` expressions through the scope chain, so write `x-data` directly and read props by name:
+
+```html
+<!-- correct -->
+<div x-data="{ count: Number(start) || 0 }">...</div>
+
+<!-- wrong — s-bind:x-data breaks in dev mode -->
+<div s-bind:x-data="{ count: Number(start) || 0 }">...</div>
+```
